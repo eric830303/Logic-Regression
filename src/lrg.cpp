@@ -26,7 +26,7 @@ int main( int argc, const char * argv[] )
         return -1;
     }
     //----------- Gen. Truth Table (Call iogen) --------------//
-    
+    myFramework->parser_io_info();
     
     
     

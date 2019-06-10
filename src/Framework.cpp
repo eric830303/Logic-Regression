@@ -31,20 +31,39 @@ bool framework::argChecker( int argc, const char *argv[] )
 //--------------- Parser of "io_info.txt" ---------------------//
 void framework::parser_io_info( string fname )
 {
-    ofstream f_parser;
+    ifstream f_parser;
     f_parser.open( fname, ios::in );
     
     
     string line = "";
-    
+    int input_var_ctr = 0;
+    int output_var_ctr = 0;
     if( f_parser.is_open() )
     {
         getline( f_parser, line );
-        istringstream token(line);
+        istringstream token1(line);
+        token1 >> input_var_ctr >> output_var_ctr;
         
+        getline( f_parser, line );
+        istringstream token2(line);
+        string tmp_str = "";
+        for( int i = 1; i <= input_var_ctr + output_var_ctr; i++ )
+        {
+            Var* vPtr = new Var();
+            token2 >> tmp_str;
+            vPtr->set_symb(tmp_str);
+            
+            if( i <= input_var_ctr )    this->_vVar_int.push_back(vPtr);
+            else                        this->_vVar_out.push_back(vPtr);
+        }
+        /*
+        //---------- DFT -----------------------------------------
+        for( auto const &v: this->_vVar_int )
+            printf("%s ", v->get_symb().c_str() );
         
-        
-        
+        for( auto const &v: this->_vVar_out )
+            printf("%s ", v->get_symb().c_str() );
+        */
         
         
         
