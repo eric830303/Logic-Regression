@@ -34,9 +34,9 @@ private:
 public:
     //------- Parser --------------------------------------//
     void parser_io_info( string input_file="io_info.txt" );
-    void parser_truth_table( string input_file="io_rel.txt");
+    void parser_truth_table( string in="io_rel.txt");
     //------- Caller --------------------------------------//
-    void caller_iogen( string blkbox = "iogen", string input = "io_pat.txt", string output = "io_rel.txt" );
+    void caller_iogen( string blkb = "iogen", string in = "in_pat.txt", string put = "io_rel.txt" );
     
     bool argChecker( int argc, const char *argv[] );
     

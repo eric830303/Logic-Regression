@@ -27,6 +27,8 @@ int main( int argc, const char * argv[] )
     }
     //----------- Gen. Truth Table (Call iogen) --------------//
     myFramework->parser_io_info();
+    myFramework->caller_iogen();
+    myFramework->parser_truth_table();
     
     
     
