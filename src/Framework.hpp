@@ -14,7 +14,11 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-
+#include "Cube.hpp"
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <assert.h>
 
 using namespace std;
 
@@ -29,8 +33,9 @@ class framework
 private:
     string _io_info_fname    = "";
     string _output_ckt       = "circuit.v";
-    vector <Var*> _vVar_int ;
-    vector <Var*> _vVar_out ;
+    vector <string> _vVar_int ;
+    vector <string> _vVar_out ;
+    vector <Cube*> _vCube   ;
 public:
     //------- Parser --------------------------------------//
     void parser_io_info( string input_file="io_info.txt" );
@@ -47,20 +52,4 @@ public:
     
     
 };
-
-class Var
-{
-    friend framework;
-private:
-    string symbol;
-public:
-    void set_symb( string s ){ this->symbol = s; }
-    string get_symb( ){ return this->symbol; }
-    
-};
-
-
-
-
-
 #endif /* Framework_hpp */
