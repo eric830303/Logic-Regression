@@ -100,9 +100,9 @@ void framework::parser_truth_table( string in_file )
     istringstream token(line);
     token >> i_Var_in_ctr >> i_Var_out_ctr >> i_Cube_ctr;
     
-    //----Debug-----
-    assert( i_Var_out_ctr == this->_vVar_int.size() );
-    assert( i_Var_in_ctr  == this->_vVar_out.size() );
+    //---- Double check -----
+    assert( i_Var_in_ctr  == this->_vVar_int.size() );
+    assert( i_Var_out_ctr == this->_vVar_out.size() );
     assert( i_Cube_ctr    != 0 );
     
     
@@ -127,17 +127,22 @@ void framework::parser_truth_table( string in_file )
                 pVar->_b_value = (i_value)?(true):(false);
                 if( i_loop_ctr < i_Var_in_ctr ) pCube->_v_Var_in.push_back(pVar);
                 else                            pCube->_v_Var_out.push_back(pVar);
-                
-                //----- DFT ------------
-                //To be continued...
-                
                 i_loop_ctr++;
             }
             this->_vCube.push_back(pCube);
-            //To be continued here
-            //Test
-            printf("%s \n", line.c_str());
         }
+        
+        //----DFT--------//
+        /*
+        for( auto const &cube:this->_vCube )
+        {
+            for( auto const &v:cube->_v_Var_in )
+                printf("%d ",v->get_bvalue());
+            for( auto const &v:cube->_v_Var_out )
+                printf("%d ",v->get_bvalue());
+            printf("\n");
+        }
+         */
     }else
         printf( RED"[Error] " RST"Unable to open/read %s\n", in_file.c_str() );
 }

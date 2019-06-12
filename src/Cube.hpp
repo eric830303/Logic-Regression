@@ -14,6 +14,7 @@
 
 class Cube;
 
+using namespace std;
 class Var
 {
 protected:

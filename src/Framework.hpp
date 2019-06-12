@@ -23,6 +23,7 @@
 using namespace std;
 
 class Var;
+class Cube;
 //------------------ Main Class -----------------------//
 class framework
 {
@@ -43,6 +44,13 @@ public:
     //------- Caller --------------------------------------//
     void caller_iogen( string blkb = "iogen", string in = "in_pat.txt", string put = "io_rel.txt" );
     
+    //------- Espresso Algorithm --------------------------//
+    //void do_espresso_algorithm();
+    //void do_espresso_expand();
+    //void do_espresso_reduce();
+    
+    
+    //-------- Other Func ---------------------------------//
     bool argChecker( int argc, const char *argv[] );
     
     
