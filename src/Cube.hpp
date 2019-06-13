@@ -20,6 +20,7 @@ class Var
 protected:
     //string _s_symbol;
     bool _b_value;
+    pair<bool,bool> _pr_code;
 public:
     //void set_symb( string s ){ this->_s_symbol = s; }
     //string get_symb( ){ return this->_s_symbol; }
@@ -37,6 +38,7 @@ class Cube
 protected:
     vector <Var*> _v_Var_in;
     vector <Var*> _v_Var_out;
+    int _i_weight;//Used while expanding
 public:
     friend class Var;
     friend class framework;

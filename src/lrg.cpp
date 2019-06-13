@@ -30,6 +30,8 @@ int main( int argc, const char * argv[] )
     myFramework->caller_iogen();
     myFramework->parser_truth_table();
     
+    //----------- Espresso Algorithm (2 Level Logic Oprimizer)-//
+    myFramework->do_espresso_algorithm();
     
     
     //-------- End the program ------------------------------//

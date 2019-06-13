@@ -86,7 +86,9 @@ void framework::parser_truth_table( string in_file )
     ifstream f_parser;
     string line = "";
     
-    f_parser.open( in_file, ios::in );
+    //f_parser.open( in_file, ios::in );
+    
+    f_parser.open( "io_rel2.txt", ios::in );
     
     //------ Parse I/O Var Sequence --------------------------------//
     getline( f_parser, line );
@@ -124,7 +126,18 @@ void framework::parser_truth_table( string in_file )
             while( token2 >> i_value )
             {
                 Var *pVar = new Var;
-                pVar->_b_value = (i_value)?(true):(false);
+                
+                if( i_value )
+                {
+                    pVar->_b_value = 1;
+                    pVar->_pr_code.first = 0;
+                    pVar->_pr_code.second= 1;
+                }else
+                {
+                    pVar->_b_value = 0;
+                    pVar->_pr_code.first = 1;
+                    pVar->_pr_code.second= 0;
+                }
                 if( i_loop_ctr < i_Var_in_ctr ) pCube->_v_Var_in.push_back(pVar);
                 else                            pCube->_v_Var_out.push_back(pVar);
                 i_loop_ctr++;
@@ -148,3 +161,57 @@ void framework::parser_truth_table( string in_file )
 }
 
 
+void framework::do_espresso_algorithm()
+{
+    vector<int> v_col_ctr;
+    this->do_espresso_expand_col_ctr_vtr( v_col_ctr );
+    this->do_espresso_expand_cal_cube_weigth( v_col_ctr ) ;
+    //sort cube weight
+    //----- DFT ------
+    
+    
+    
+}
+
+void framework::do_espresso_expand_col_ctr_vtr( vector<int> &v_col_ctr )
+{
+    unsigned long i_Var_in_size = this->_vVar_int.size() * 2;
+    
+    bool first = 1;
+    for( unsigned long j = 0; j < i_Var_in_size; j++ )
+    {
+        int i_ctr = 0;
+        if( first )
+        {
+            for( auto const & cube: this->_vCube )
+                if( cube->_v_Var_in.at( int(j/2) )->_pr_code.first ) i_ctr++;
+            
+        }else
+        {
+            for( auto const & cube: this->_vCube )
+                if( cube->_v_Var_in.at( int(j/2) )->_pr_code.second ) i_ctr++;
+        }
+        v_col_ctr.push_back( i_ctr );
+        first = ! first;
+    }
+}
+
+void framework::do_espresso_expand_cal_cube_weigth( vector<int> const & v_col_ctr )
+{
+    unsigned long i_Var_in_size = this->_vVar_int.size() * 2;
+    assert( i_Var_in_size == v_col_ctr.size() );
+    
+    for( auto const & cube: this->_vCube )
+    {
+        bool first = 1;
+        int i_weight = 0;
+        
+        for( unsigned long j = 0; j < i_Var_in_size; j++ )
+        {
+            if( cube->_v_Var_in.at( int(j/2) )->_pr_code.first  &&  first ) i_weight += v_col_ctr.at(j);
+            if( cube->_v_Var_in.at( int(j/2) )->_pr_code.second && !first ) i_weight += v_col_ctr.at(j);
+            first = !first;
+        }
+        cube->_i_weight = i_weight;
+    }
+}
