@@ -15,7 +15,9 @@
 class Cube;
 
 using namespace std;
-class Var
+
+//----------- Input Varariables ----------------------------------//
+class Var_in
 {
 protected:
     //string _s_symbol;
@@ -32,14 +34,27 @@ public:
     friend class Cube;
 };
 
+//----------- Output Varariables ----------------------------------//
+class Var_out
+{
+protected:
+    bool _b_value;
+    vector <Cube*>
+private:
+    friend class framework;
+    friend class Cube;
+};
+
+
 
 class Cube
 {
 protected:
-    vector <Var*> _v_Var_in;
-    vector <Var*> _v_Var_out;
-    int _i_weight;//Used while expanding
+    vector <Var_in*>    _v_Var_in;
+    //vector <Var_out*>   _v_Var_out;
 public:
+    int _i_weight;//Used while expanding
+    bool expanded = false;
     friend class Var;
     friend class framework;
     
