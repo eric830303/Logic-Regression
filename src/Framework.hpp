@@ -48,14 +48,14 @@ public:
     void caller_iogen( string blkb = "iogen", string in = "in_pat.txt", string put = "io_rel.txt" );
     
     //------- Espresso Algorithm --------------------------//
-    //需要大改
     void do_espresso_algorithm();
     void do_espresso_expand_calColumnCtr( vector<int>&, Var_out* );
     void do_espresso_expand_calCubeWeigth( vector<int> const &, Var_out*);
     void do_espresso_expand( Var_out* );
     bool do_espresso_expand_doExpandGivenCube( Cube*, Var_out* );
     void do_espresso_reduce();
-    
+    //------- Dumper for Log -------------------------------//
+    void dump_expanded_cover();//To do, please refer to p.73
     
     //-------- Other Func ---------------------------------//
     bool argChecker( int argc, const char *argv[] );

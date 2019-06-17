@@ -261,24 +261,19 @@ bool framework::isAllCubeExpanded( set<Cube*>* const cubes_onset )
 //-------------------------------------------------//
 bool framework::do_espresso_expand_doExpandGivenCube( Cube* cube, Var_out* var_out )
 {
-    bool del = 0;
-    
-    //Iterate through encoded bits of cube representation.
-    bool first = 1;
-    unsigned long i_Var_in_size = cube->_v_Var_in.size()*2;
-    
+    bool del    = 0;
+    bool first  = 1;
+    bool *pbit  = NULL;
     pair <bool,bool> *p_encode = NULL ;
-    bool * pbit = NULL;
+    unsigned long i_Var_in_size = cube->_v_Var_in.size()*2;
+
+    //Iterate through encoded bits of cube representation.
     for( unsigned long j = 0; j < i_Var_in_size; j++ )
     {
         p_encode = &( cube->_v_Var_in.at( int(j/2) )->_pr_code );
         pbit     = ( first )? &(p_encode->first): &(p_encode->second);
-        
-        //Flip the bit from 0 to 1
-        //Then, check validity
-        //If valid, then delete covered cubes.
-        if( (*pbit) )
-            continue;
+        //Flip the bit from 0 to 1. Then, check validity, If valid, then delete covered cubes.
+        if( (*pbit) )   continue;
         else
         {
             *pbit = 1;
@@ -287,17 +282,40 @@ bool framework::do_espresso_expand_doExpandGivenCube( Cube* cube, Var_out* var_o
             else if( isCubeCoverOtherCubes(cube, var_out ) )
                 del = 1;
         }
-        
-        
         first = !first;
     }
+    cube->expanded = 1;
     return del;
 }
-bool framework::isCubeValidInOnSet( Cube*, Var_out* var_out)
+bool framework::isCubeValidInOnSet( Cube* cube, Var_out* var_out )
 {
     bool isValid = 1;
     
-    //To do
+    //The gieven cube is invalid if it's intersected with any other off cube
+    unsigned long i_Var_in_size = cube->_v_Var_in.size()*2;
+    
+    pair <bool,bool> *p_code_A = NULL ;
+    pair <bool,bool> *p_code_B = NULL ;
+    pair <bool,bool> p_and;
+    
+    
+    for( auto const &offcube: var_out->s_cube_off )//For each cube in off-set
+    {
+        for( unsigned long j = 0; j < i_Var_in_size; j=j+2 )
+        {
+            p_code_A = &(    cube->_v_Var_in.at( int(j/2) )->_pr_code );
+            p_code_B = &( offcube->_v_Var_in.at( int(j/2) )->_pr_code );
+            p_and.first  = p_code_A->first  & p_code_B->first;
+            p_and.second = p_code_A->second & p_code_B->second;
+            
+            if( p_and == pair<bool,bool>(1,0) || p_and != pair<bool,bool>(0,1) )
+            {
+                //Intersec
+                isValid = 0;
+                return isValid;
+            }
+        }
+    }
     
     return isValid;
 }
@@ -305,11 +323,35 @@ bool framework::isCubeValidInOnSet( Cube*, Var_out* var_out)
 // Check the given cube whether cover other
 // cube. If yes, delete them
 //---------------------------------------------//
-bool framework::isCubeCoverOtherCubes( Cube*, Var_out* )
+bool framework::isCubeCoverOtherCubes( Cube* cube, Var_out* var_out )
 {
     bool isCover = 0;
     
-    //To do
+    //The gieven cube is invalid if it's intersected with any other off cube
+    unsigned long i_Var_in_size = cube->_v_Var_in.size()*2;
+    
+    pair <bool,bool> *p_code_A = NULL ;
+    pair <bool,bool> *p_code_B = NULL ;
+    pair <bool,bool> p_and;
+    
+    
+    for( auto const &offcube: var_out->s_cube_on )//For each cube in off-set
+    {
+        for( unsigned long j = 0; j < i_Var_in_size; j=j+2 )
+        {
+            p_code_A = &(    cube->_v_Var_in.at( int(j/2) )->_pr_code );
+            p_code_B = &( offcube->_v_Var_in.at( int(j/2) )->_pr_code );
+            p_and.first  = p_code_A->first  & p_code_B->first;
+            p_and.second = p_code_A->second & p_code_B->second;
+            
+            if( p_and == pair<bool,bool>(1,0) || p_and != pair<bool,bool>(0,1) )
+            {
+                //Intersec
+                isCover = 1;
+                var_out->s_cube_on.erase(offcube);
+            }
+        }
+    }
     
     return isCover;
 }
