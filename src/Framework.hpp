@@ -38,9 +38,8 @@ private:
     string _output_ckt       = "circuit.v";
     vector <string> _v_str_Var_in  ;
     vector <string> _v_str_Var_out ;
-    vector < set <Cube*>* > _v_set_Var_out_on;
-    vector < set <Cube*>* > _v_set_Var_out_off;
     vector <Cube*> _vCube   ;
+    vector <Var_out*> _v_Var_out;
 public:
     //------- Parser --------------------------------------//
     void parser_io_info( string input_file="io_info.txt" );
@@ -51,18 +50,18 @@ public:
     //------- Espresso Algorithm --------------------------//
     //需要大改
     void do_espresso_algorithm();
-    void do_espresso_expand_calColumnCtr( vector<int>&, set<Cube*> * const );
-    void do_espresso_expand_calCubeWeigth( vector<int> const &, set<Cube*>* const);
-    void do_espresso_expand( set<Cube*> * );
-    bool do_espresso_expand_doExpandGivenCube( Cube*, set<Cube*>* );
+    void do_espresso_expand_calColumnCtr( vector<int>&, Var_out* );
+    void do_espresso_expand_calCubeWeigth( vector<int> const &, Var_out*);
+    void do_espresso_expand( Var_out* );
+    bool do_espresso_expand_doExpandGivenCube( Cube*, Var_out* );
     void do_espresso_reduce();
     
     
     //-------- Other Func ---------------------------------//
     bool argChecker( int argc, const char *argv[] );
     bool isAllCubeExpanded( set<Cube*>* const );
-    bool isCubeValidInOnSet( Cube*, set<Cube*>* const );
-    bool isCubeCoverOtherCubes( Cube*, set<Cube*>* const );
+    bool isCubeValidInOnSet( Cube*, Var_out* );
+    bool isCubeCoverOtherCubes( Cube*, Var_out*);
     
     //----Set/Get-----------------------------------------//
     //void set_io_info_fname( string s ){ this->_io_info_fname = s; }

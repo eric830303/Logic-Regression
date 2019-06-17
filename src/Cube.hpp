@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "Framework.hpp"
-
+#include <set>
 class Cube;
 
 using namespace std;
@@ -24,9 +24,6 @@ protected:
     bool _b_value;
     pair<bool,bool> _pr_code;
 public:
-    //void set_symb( string s ){ this->_s_symbol = s; }
-    //string get_symb( ){ return this->_s_symbol; }
-
     void set_bvalue( bool b ){ this->_b_value = b; }
     bool get_bvalue( ){ return this->_b_value; }
     
@@ -38,8 +35,8 @@ public:
 class Var_out
 {
 protected:
-    bool _b_value;
-    vector <Cube*>
+    set <Cube*> s_cube_on;
+    set <Cube*> s_cube_off;
 private:
     friend class framework;
     friend class Cube;

@@ -110,10 +110,8 @@ void framework::parser_truth_table( string in_file )
     
     for( int i = 0; i < i_Var_out_ctr; i++ )
     {
-        set <Cube*> * pset_cube_on  = new set <Cube*>;
-        set <Cube*> * pset_cube_off = new set <Cube*>;
-        this->_v_set_Var_out_on.push_back( pset_cube_on);
-        this->_v_set_Var_out_off.push_back( pset_cube_off);
+        Var_out * p_var_out = new Var_out;
+        this->_v_Var_out.push_back(p_var_out);
     }
     
     
@@ -146,9 +144,9 @@ void framework::parser_truth_table( string in_file )
                 {
                     int index = i_Var_out_ctr - i_loop_ctr;
                     if( i_value )
-                        this->_v_set_Var_out_on.at( index )->insert( pCube );
+                        this->_v_Var_out.at(index)->s_cube_on.insert(pCube);
                     else
-                        this->_v_set_Var_out_off.at( index )->insert( pCube );
+                        this->_v_Var_out.at(index)->s_cube_off.insert(pCube);
                 }
                 i_loop_ctr++;
             }
@@ -162,13 +160,13 @@ bool mycompare( Cube*A, Cube*B ){ return (A->_i_weight > B->_i_weight); };
 
 void framework::do_espresso_algorithm()
 {
-    for( auto const &cubes_onset: this->_v_set_Var_out_on )
+    for( auto &var_out: this->_v_Var_out )
     {
         vector<int> v_col_ctr;
-        this->do_espresso_expand_calColumnCtr( v_col_ctr, cubes_onset );
-        this->do_espresso_expand_calCubeWeigth( v_col_ctr, cubes_onset );
+        this->do_espresso_expand_calColumnCtr( v_col_ctr, var_out );
+        this->do_espresso_expand_calCubeWeigth( v_col_ctr, var_out );
         sort( this->_vCube.begin(), this->_vCube.end(), mycompare );
-        this->do_espresso_expand( cubes_onset ) ;
+        this->do_espresso_expand( var_out ) ;
     }
     //----- DFT ------
     
@@ -179,7 +177,7 @@ void framework::do_espresso_algorithm()
 // Calculate the count of on in each column,
 // after truth table is encoded.
 //------------------------------------------//
-void framework::do_espresso_expand_calColumnCtr( vector<int> &v_col_ctr, set<Cube*>* const cube_onset)
+void framework::do_espresso_expand_calColumnCtr( vector<int> &v_col_ctr, Var_out* var )
 {
     unsigned long i_Var_in_size = this->_v_str_Var_in.size() * 2;
     
@@ -189,12 +187,12 @@ void framework::do_espresso_expand_calColumnCtr( vector<int> &v_col_ctr, set<Cub
         int i_ctr = 0;
         if( first )
         {
-            for( auto const & cube: *cube_onset )
+            for( auto const & cube: var->s_cube_on )
                 if( cube->_v_Var_in.at( int(j/2) )->_pr_code.first ) i_ctr++;
             
         }else
         {
-            for( auto const & cube: *cube_onset )
+            for( auto const & cube: var->s_cube_on )
                 if( cube->_v_Var_in.at( int(j/2) )->_pr_code.second ) i_ctr++;
         }
         v_col_ctr.push_back( i_ctr );
@@ -205,12 +203,12 @@ void framework::do_espresso_expand_calColumnCtr( vector<int> &v_col_ctr, set<Cub
 //  Calcuate weight of each cube, base on the given
 //  set of on cubes.
 //---------------------------------------------------//
-void framework::do_espresso_expand_calCubeWeigth( vector<int>const& v_col_ctr, set<Cube*>* const cube_onset )
+void framework::do_espresso_expand_calCubeWeigth( vector<int>const& v_col_ctr, Var_out *var )
 {
     unsigned long i_Var_in_size = this->_v_str_Var_in.size() * 2;
     assert( i_Var_in_size == v_col_ctr.size() );
     
-    for( auto const & cube: this->_vCube )
+    for( auto const & cube: var->s_cube_on )
     {
         cube->_i_weight = 0;//Initialized
         bool first = 1;
@@ -225,19 +223,23 @@ void framework::do_espresso_expand_calCubeWeigth( vector<int>const& v_col_ctr, s
         cube->_i_weight = i_weight;
     }
 }
-
-void framework::do_espresso_expand( set<Cube*> *cubes_onset )
+//--------------------------------------//
+// The most top function in series
+// of espresso-related function
+//--------------------------------------//
+void framework::do_espresso_expand( Var_out* var_out )
 {
     //-----Initialized ----------------//
-    for( auto const &cube: *cubes_onset )
+    for( auto const &cube: var_out->s_cube_on )
         cube->expanded = 0;
     //----- Heuristic -----------------//
-    while( this->isAllCubeExpanded( cubes_onset ) )
+    while( this->isAllCubeExpanded( &(var_out->s_cube_on )) )
     {
-        for( auto &cube: *cubes_onset )
+        for( auto &cube: var_out->s_cube_on )
         {
             if( cube->expanded ) continue;
-            bool del = this->do_espresso_expand_doExpandGivenCube( cube, cubes_onset);
+            bool del = this->do_espresso_expand_doExpandGivenCube( cube, var_out);
+            
             //One covered cube is deleted, due to the expanded cube.
             if( del )
             {
@@ -257,7 +259,7 @@ bool framework::isAllCubeExpanded( set<Cube*>* const cubes_onset )
 // Expand the given cube, and delete the cubes covered
 // by the expanded cube
 //-------------------------------------------------//
-bool framework::do_espresso_expand_doExpandGivenCube( Cube* cube, set<Cube *> * cube_onset )
+bool framework::do_espresso_expand_doExpandGivenCube( Cube* cube, Var_out* var_out )
 {
     bool del = 0;
     
@@ -280,9 +282,9 @@ bool framework::do_espresso_expand_doExpandGivenCube( Cube* cube, set<Cube *> * 
         else
         {
             *pbit = 1;
-            if( !isCubeValidInOnSet( cube, cube_onset) )
+            if( !isCubeValidInOnSet( cube, var_out) )
                 *pbit = 0;
-            else if( isCubeCoverOtherCubes(cube, cube_onset))
+            else if( isCubeCoverOtherCubes(cube, var_out ) )
                 del = 1;
         }
         
@@ -291,13 +293,23 @@ bool framework::do_espresso_expand_doExpandGivenCube( Cube* cube, set<Cube *> * 
     }
     return del;
 }
-bool framework::isCubeValidInOnSet( Cube*, set<Cube*>* const )
+bool framework::isCubeValidInOnSet( Cube*, Var_out* var_out)
 {
-    bool isValid = 0;
+    bool isValid = 1;
+    
+    //To do
+    
     return isValid;
 }
-bool framework::isCubeCoverOtherCubes( Cube*, set<Cube*>* const )
+//---------------------------------------------//
+// Check the given cube whether cover other
+// cube. If yes, delete them
+//---------------------------------------------//
+bool framework::isCubeCoverOtherCubes( Cube*, Var_out* )
 {
     bool isCover = 0;
+    
+    //To do
+    
     return isCover;
 }
