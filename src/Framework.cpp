@@ -355,3 +355,32 @@ bool framework::isCubeCoverOtherCubes( Cube* cube, Var_out* var_out )
     
     return isCover;
 }
+//-------------------------------------------------------------//
+// Dump log (Debug use)
+//-------------------------------------------------------------//
+void framework::dump_expanded_cover()
+{
+	for(auto const& var_out : this->_v_Var_out)
+	{
+		for (auto const& on_cube : var_out->s_cube_on)
+		{
+			unsigned long i_Var_in_size = on_cube->_v_Var_in.size() * 2;
+			for (unsigned long j = 0; j < i_Var_in_size; j = j + 2)
+			{
+				pair <bool, bool>& p_code = on_cube->_v_Var_in.at(int(j / 2))->_pr_code;
+				if (p_code == pair<bool, bool>(0, 0))
+					printf("N (0,0) ");
+				else if (p_code == pair<bool, bool>(0, 1))
+					printf("0 (0,1) ");
+				else if (p_code == pair<bool, bool>(1, 0))
+					printf("1 (1,0) ");
+				else if (p_code == pair<bool, bool>(1, 1))
+					printf("D (1,1) ");
+			}
+			printf("\n\n");
+		}
+	}
+
+
+
+}
