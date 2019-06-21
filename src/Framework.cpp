@@ -142,7 +142,7 @@ void framework::parser_truth_table( string in_file )
                     pCube->_v_Var_in.push_back(p_Var_in);
                 }else
                 {
-                    int index = i_Var_out_ctr - i_loop_ctr;
+                    int index = i_loop_ctr - i_Var_in_ctr;
                     if( i_value )
                         this->_v_Var_out.at(index)->s_cube_on.insert(pCube);
                     else
@@ -165,9 +165,11 @@ void framework::do_espresso_algorithm()
         vector<int> v_col_ctr;
         this->do_espresso_expand_calColumnCtr( v_col_ctr, var_out );
         this->do_espresso_expand_calCubeWeigth( v_col_ctr, var_out );
+        //1
         sort( this->_vCube.begin(), this->_vCube.end(), mycompare );
         this->do_espresso_expand( var_out ) ;
     }
+    this->dump_expanded_cover();
     //----- DFT ------
     
     
@@ -196,7 +198,7 @@ void framework::do_espresso_expand_calColumnCtr( vector<int> &v_col_ctr, Var_out
                 if( cube->_v_Var_in.at( int(j/2) )->_pr_code.second ) i_ctr++;
         }
         v_col_ctr.push_back( i_ctr );
-        first = ! first;
+        first = !first;
     }
 }
 //----------------------------------------------------//
@@ -233,11 +235,12 @@ void framework::do_espresso_expand( Var_out* var_out )
     for( auto const &cube: var_out->s_cube_on )
         cube->expanded = 0;
     //----- Heuristic -----------------//
-    while( this->isAllCubeExpanded( &(var_out->s_cube_on )) )
+    while( !this->isAllCubeExpanded( &(var_out->s_cube_on )) )
     {
-        for( auto &cube: var_out->s_cube_on )
+        for( auto &cube: this->_vCube )//bug: this->_v_cube, for the order of weight
         {
             if( cube->expanded ) continue;
+            if( var_out->s_cube_on.find(cube) == var_out->s_cube_on.end() ) continue;//off cube or DC
             bool del = this->do_espresso_expand_doExpandGivenCube( cube, var_out);
             
             //One covered cube is deleted, due to the expanded cube.
@@ -289,10 +292,10 @@ bool framework::do_espresso_expand_doExpandGivenCube( Cube* cube, Var_out* var_o
 }
 bool framework::isCubeValidInOnSet( Cube* cube, Var_out* var_out )
 {
-    bool isValid = 1;
     
-    //The gieven cube is invalid if it's intersected with any other off cube
-    unsigned long i_Var_in_size = cube->_v_Var_in.size()*2;
+    //The given cube is invalid if it's intersected with any other off cube
+    //The given cube is valid if it's not intersected with any other off-cube
+    unsigned long i_Var_in_size = cube->_v_Var_in.size();
     
     pair <bool,bool> *p_code_A = NULL ;
     pair <bool,bool> *p_code_B = NULL ;
@@ -301,23 +304,24 @@ bool framework::isCubeValidInOnSet( Cube* cube, Var_out* var_out )
     
     for( auto const &offcube: var_out->s_cube_off )//For each cube in off-set
     {
-        for( unsigned long j = 0; j < i_Var_in_size; j=j+2 )
+        if( offcube == cube ) continue;
+        
+        bool isIntersect = 1;
+        for( unsigned long j = 0; j < i_Var_in_size; j++ )
         {
-            p_code_A = &(    cube->_v_Var_in.at( int(j/2) )->_pr_code );
-            p_code_B = &( offcube->_v_Var_in.at( int(j/2) )->_pr_code );
+            p_code_A = &(    cube->_v_Var_in.at( int(j) )->_pr_code );
+            p_code_B = &( offcube->_v_Var_in.at( int(j) )->_pr_code );
             p_and.first  = p_code_A->first  & p_code_B->first;
             p_and.second = p_code_A->second & p_code_B->second;
             
-            if( p_and == pair<bool,bool>(1,0) || p_and != pair<bool,bool>(0,1) )
-            {
-                //Intersec
-                isValid = 0;
-                return isValid;
-            }
+            if( p_and == pair<bool,bool>(0,0) )
+                isIntersect = 0;
         }
+        if( isIntersect )
+            return false;
     }
     
-    return isValid;
+    return true;
 }
 //---------------------------------------------//
 // Check the given cube whether cover other
@@ -325,35 +329,44 @@ bool framework::isCubeValidInOnSet( Cube* cube, Var_out* var_out )
 //---------------------------------------------//
 bool framework::isCubeCoverOtherCubes( Cube* cube, Var_out* var_out )
 {
-    bool isCover = 0;
-    
-    //The gieven cube is invalid if it's intersected with any other off cube
-    unsigned long i_Var_in_size = cube->_v_Var_in.size()*2;
+    unsigned long i_Var_in_size = cube->_v_Var_in.size();
     
     pair <bool,bool> *p_code_A = NULL ;
     pair <bool,bool> *p_code_B = NULL ;
     pair <bool,bool> p_and;
     
     
-    for( auto const &offcube: var_out->s_cube_on )//For each cube in off-set
+    for( auto const &on_cube: var_out->s_cube_on )//For each cube in on-set
     {
-        for( unsigned long j = 0; j < i_Var_in_size; j=j+2 )
+        if( on_cube == cube ) continue;
+        
+        bool isIntersect = 1;
+        for( unsigned long j = 0; j < i_Var_in_size; j++ )
         {
-            p_code_A = &(    cube->_v_Var_in.at( int(j/2) )->_pr_code );
-            p_code_B = &( offcube->_v_Var_in.at( int(j/2) )->_pr_code );
+            p_code_A = &(    cube->_v_Var_in.at( int(j) )->_pr_code );
+            p_code_B = &( on_cube->_v_Var_in.at( int(j) )->_pr_code );
             p_and.first  = p_code_A->first  & p_code_B->first;
             p_and.second = p_code_A->second & p_code_B->second;
             
-            if( p_and == pair<bool,bool>(1,0) || p_and != pair<bool,bool>(0,1) )
+            //Not intersect
+            if( p_and == pair<bool,bool>(0,0) )
             {
-                //Intersec
-                isCover = 1;
-                var_out->s_cube_on.erase(offcube);
+                isIntersect = 0;
+                //break;
             }
+        }
+        if( isIntersect )
+        {
+            var_out->s_cube_on.erase(on_cube);
+            //Update the expanded cube
+            //Synchronize _b_value, based on p_code
+            
+            
+            return true;
         }
     }
     
-    return isCover;
+    return false;
 }
 //-------------------------------------------------------------//
 // Dump log (Debug use)
@@ -364,10 +377,10 @@ void framework::dump_expanded_cover()
 	{
 		for (auto const& on_cube : var_out->s_cube_on)
 		{
-			unsigned long i_Var_in_size = on_cube->_v_Var_in.size() * 2;
-			for (unsigned long j = 0; j < i_Var_in_size; j = j + 2)
+			unsigned long i_Var_in_size = on_cube->_v_Var_in.size();
+			for (unsigned long j = 0; j < i_Var_in_size; j++)
 			{
-				pair <bool, bool>& p_code = on_cube->_v_Var_in.at(int(j / 2))->_pr_code;
+				pair <bool, bool>& p_code = on_cube->_v_Var_in.at(int(j))->_pr_code;
 				if (p_code == pair<bool, bool>(0, 0))
 					printf("N (0,0) ");
 				else if (p_code == pair<bool, bool>(0, 1))

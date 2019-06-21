@@ -24,7 +24,7 @@
 
 using namespace std;
 
-class Var;
+class Var_out;
 class Cube;
 //------------------ Main Class -----------------------//
 class framework

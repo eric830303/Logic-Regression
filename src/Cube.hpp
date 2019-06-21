@@ -50,7 +50,7 @@ protected:
     vector <Var_in*>    _v_Var_in;
     //vector <Var_out*>   _v_Var_out;
 public:
-    int _i_weight;//Used while expanding
+    int _i_weight = 0;//Used while expanding
     bool expanded = false;
     friend class Var;
     friend class framework;
